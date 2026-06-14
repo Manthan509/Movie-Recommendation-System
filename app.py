@@ -14,26 +14,25 @@ if st.button("Recommend"):
         st.error("Movie not found!")
 
     else:
-
         st.subheader("Top Recommendations")
 
         for title, score in recommendations:
 
             movie = fetch_movie(title)
 
-           if movie:
+            if movie:
 
-    if movie.get("poster") and movie["poster"] != "N/A":
-        st.image(movie["poster"])
-    else:
-        st.write("🖼️ Poster not available")
+                if movie.get("poster") and movie["poster"] != "N/A":
+                    st.image(movie["poster"])
+                else:
+                    st.write("🖼️ Poster not available")
 
-    st.subheader(movie["title"])
+                st.subheader(movie.get("title", title))
 
-    st.write("⭐ IMDb Rating:", movie.get("rating", "N/A"))
-    st.write("📅 Year:", movie.get("year", "N/A"))
+                st.write("⭐ IMDb Rating:", movie.get("rating", "N/A"))
+                st.write("📅 Year:", movie.get("year", "N/A"))
 
-    st.write("📝 Plot:")
-    st.write(movie.get("plot", "N/A"))
+                st.write("📝 Plot:")
+                st.write(movie.get("plot", "N/A"))
 
-    st.write("---")
+                st.write("---")
