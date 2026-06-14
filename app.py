@@ -21,22 +21,19 @@ if st.button("Recommend"):
 
             movie = fetch_movie(title)
 
-            if movie:
+           if movie:
 
-                if movie["poster"] != "N/A":
-                 st.image(movie["poster"], width=200)
-                else:
-                 st.write("🎬 Poster not available")
- 
-                st.subheader(movie["title"])
+    if movie.get("poster") and movie["poster"] != "N/A":
+        st.image(movie["poster"])
+    else:
+        st.write("🖼️ Poster not available")
 
-                st.write("⭐ IMDb Rating:", movie["rating"])
+    st.subheader(movie["title"])
 
-                st.write("📅 Year:", movie["year"])
+    st.write("⭐ IMDb Rating:", movie.get("rating", "N/A"))
+    st.write("📅 Year:", movie.get("year", "N/A"))
 
-                st.write("📝 Plot:")
-                st.write(movie["plot"])
+    st.write("📝 Plot:")
+    st.write(movie.get("plot", "N/A"))
 
-               
-
-                st.write("---")
+    st.write("---")
