@@ -2,6 +2,7 @@ import pandas as pd
 import joblib
 import os
 import gdown
+import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
@@ -12,10 +13,10 @@ movies = pd.read_csv("ml-latest/movies.csv")
 movies["genres"] = movies["genres"].fillna("")
 
 # Create TF-IDF matrix
-tfidf = TfidfVectorizer(stop_words='english')
+tfidf = TfidfVectorizer(stop_words="english")
 tfidf_matrix = tfidf.fit_transform(movies["genres"])
 
-# Download SVD model if it doesn't exist
+# Download SVD model if not present
 if not os.path.exists("svd_model.pkl"):
 
     url = "https://drive.google.com/uc?id=1us1EXNR8_fbzQ-QjhqvUylScX2SWYvpD"
@@ -27,17 +28,28 @@ model = joblib.load("svd_model.pkl")
 
 print("Model loaded successfully!")
 
-# Hybrid recommendation function
+
+def clean_title(title):
+
+    # Remove year
+    title = re.sub(r"\(\d{4}\)", "", title)
+
+    # Convert "Avengers, The" → "The Avengers"
+    if ", The" in title:
+        title = "The " + title.replace(", The", "")
+
+    return title.lower().strip()
+
+
 def hybrid_recommend(movie_name, user_id=1, top_n=10):
 
-    # Find movie
+    search_name = movie_name.lower().strip()
+
+    # Find matching movies
     matches = movies[
-        movies["title"].str.contains(
-            movie_name,
-            case=False,
-            na=False,
-            regex=False
-        )
+        movies["title"]
+        .apply(clean_title)
+        .str.contains(search_name, na=False)
     ]
 
     if matches.empty:
@@ -45,13 +57,12 @@ def hybrid_recommend(movie_name, user_id=1, top_n=10):
 
     idx = matches.index[0]
 
-    # Content-based similarity
+    # Calculate cosine similarity
     cosine_sim = linear_kernel(
         tfidf_matrix[idx],
         tfidf_matrix
     ).flatten()
 
-    # Similarity scores
     sim_scores = list(enumerate(cosine_sim))
 
     sim_scores = sorted(
@@ -60,29 +71,24 @@ def hybrid_recommend(movie_name, user_id=1, top_n=10):
         reverse=True
     )
 
-    # Exclude itself and take top 50
+    # Exclude itself
     sim_scores = sim_scores[1:51]
 
     results = []
 
-    # Hybrid scoring
     for i, similarity_score in sim_scores:
 
         movie_id = movies.iloc[i]["movieId"]
 
-        # Predict rating with SVD
         pred = model.predict(user_id, movie_id)
 
         predicted_rating = pred.est
 
-        # Normalize to 0-1
         normalized_rating = predicted_rating / 5
 
-        # Final hybrid score
         final_score = (
             0.5 * similarity_score
-            +
-            0.5 * normalized_rating
+            + 0.5 * normalized_rating
         )
 
         results.append(
@@ -92,7 +98,6 @@ def hybrid_recommend(movie_name, user_id=1, top_n=10):
             )
         )
 
-    # Sort by final score
     results = sorted(
         results,
         key=lambda x: x[1],
