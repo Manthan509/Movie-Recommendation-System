@@ -1,11 +1,10 @@
-\import requests
+import requests
 import re
 
 API_KEY = "7a10124c43a357ddce834f70877e3804"
 
 
 def fetch_movie(movie_name):
-
     clean_name = re.sub(r"\(\d{4}\)", "", movie_name).strip()
 
     url = (
@@ -16,9 +15,7 @@ def fetch_movie(movie_name):
     try:
         response = requests.get(url, timeout=10)
         data = response.json()
-
     except requests.exceptions.RequestException:
-
         return {
             "title": movie_name,
             "year": "N/A",
@@ -27,8 +24,7 @@ def fetch_movie(movie_name):
             "poster": "N/A"
         }
 
-    if len(data["results"]) == 0:
-
+    if not data.get("results"):
         return {
             "title": movie_name,
             "year": "N/A",
@@ -41,7 +37,7 @@ def fetch_movie(movie_name):
 
     poster = (
         "https://image.tmdb.org/t/p/w500" + movie["poster_path"]
-        if movie["poster_path"]
+        if movie.get("poster_path")
         else "N/A"
     )
 
