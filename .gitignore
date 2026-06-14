@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+tempCodeRunnerFile.py
+
+ml-latest/ratings.csv
+ml-latest/genome-scores.csv
+ml-latest/tags.csv
+svd_model.pkl
